@@ -3,6 +3,7 @@ package co.simplon.pf1;
 public class Stone {
 
 	private boolean firstPlayer;
+	
 	public Stone(boolean firstPlayer) {
 		this.firstPlayer= firstPlayer;
 	}

@@ -1,5 +1,7 @@
 package co.simplon.pf1;
 
+import java.util.Arrays;
+
 public class DebugArray2DObjects {
 
 	public static Stone[] initializedArray(Stone s, int nb){
@@ -12,7 +14,7 @@ public class DebugArray2DObjects {
 	public static Stone[][] initializedArray2D(Stone[] arr, int nb){
 		Stone[][] res= new Stone[nb][];
 		for(int i=0; i != res.length; ++i){
-			res[i]= arr;
+			res[i]= Arrays.copyOf(arr, arr.length);
 		}
 		return res;
 	}
@@ -27,6 +29,11 @@ public class DebugArray2DObjects {
 	}
 	public static void main(String[] args){
 		Stone[][] screen= initializedArray2D(initializedArray(new Stone(false), 20), 20);
+
+		for (Stone[] s : screen) {
+			System.out.println(s);
+		}
+		
 		for(int i= 0; i != Math.min(screen.length, screen[0].length); ++i){
 			screen[i][i].setFirstPlayer(true);
 			screen[screen.length-i-1][i].setFirstPlayer(true);
