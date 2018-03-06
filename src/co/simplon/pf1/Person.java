@@ -1,3 +1,4 @@
+package co.simplon.pf1;
 
 public class Person {
 	// attributes
@@ -147,7 +148,11 @@ public class Person {
 		printIntArrayAllDim(data, "data");
 		printIntArrayAllDim(other, "other");
 
-	
+		// clone data 
+		System.out.println("######## clone data");
+		other= data.clone();
+		printIntArrayAllDim(data, "data");
+		printIntArrayAllDim(other, "other");
 		
 		/*
 		Person p1= new Person("Franck", "Achard", 44);
