@@ -22,21 +22,22 @@ public class SwapArray {
 		}
 		
 		// equality test
-		/*
+		
 		if (intArrayEquality(array1, array2)) {
 			System.out.println("array1 et array2 sont égaux");
 		} else {
 			System.out.println("array1 et array2 ne sont pas égaux");
 		}
-		*/
+		
 
 		
-		
+		/* test with standard equals method
 		if (array1.equals(array2)) {
 			System.out.println("array1 equals array2");
 		} else {
 			System.out.println("array1 does not equals array2");
 		}
+		*/
 		
 		// print arrays to check
 		System.out.println("array1 :");
