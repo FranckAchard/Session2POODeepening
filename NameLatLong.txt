@@ -1,4 +1,3 @@
-Chavannes-sur-Suran;46,267;5,417
 Cize;46,2;5,433
 Coligny;46,383;5,35
 Confrançon;46,267;5,067
