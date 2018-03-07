@@ -1,4 +1,4 @@
-package co.simplon;
+package co.simplon.pf1;
 
 public class City implements Comparable<City> {
     private final String name;
