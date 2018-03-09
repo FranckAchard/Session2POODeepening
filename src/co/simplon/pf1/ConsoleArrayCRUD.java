@@ -11,25 +11,28 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Scanner;
+import java.util.TreeMap;
 
 public class ConsoleArrayCRUD {
 	private static NumberFormat numberFormat = NumberFormat.getInstance(Locale.FRENCH);
 	public static final String TEMP_DIR= "tempfiles";
 
 	private static City[] cities;
-	
+	private static TreeMap<String, City> nameToCity= new TreeMap<String, City>();
+
 	private static String cityToString(City city) {
 		return city.getName()+";"+numberFormat.format(city.getLatitude())
-				+";"+numberFormat.format(city.getLongitude());
+		+";"+numberFormat.format(city.getLongitude());
 	}
 	private static void printCities(City[] cities) {
 		for(City city : cities) {
 			System.out.println(cityToString(city));
 		}
 	}
-	
+
 	private static int findIdxByName(String name) throws IOException {
 		int res= -1;
 		for(int i=0; i != cities.length && (res == -1); ++i) {
@@ -40,10 +43,11 @@ public class ConsoleArrayCRUD {
 		return res;
 	}
 	private static City findByName(String name) throws IOException {
-		int idx= findIdxByName(name);
-		return idx == -1 ? null : cities[idx];
+		//int idx= findIdxByName(name);
+		//return idx == -1 ? null : cities[idx];
+		return nameToCity.get(name);
 	}
-	
+
 	private static void createCity(City city) throws IOException {
 		cities= add(cities, city);
 	}
@@ -51,21 +55,28 @@ public class ConsoleArrayCRUD {
 		System.out.println((System.nanoTime()-start)/1.e9);		
 	}
 	private static void bench(long nb) throws IOException {
-		long start= System.nanoTime();
+		System.out.println("bench findByName");
+		long start= System.nanoTime();		
 		for(int i=0; i != nb; ++i) {
 			findByName("Rouen");
 		}
 		chrono(start);
-		start= System.nanoTime();
+		
+		System.out.println("bench createCity");
+		start= System.nanoTime();		
 		for(int i=0; i != nb; ++i) {
 			createCity(new City("Atlantis", 0.,0.));
 		}
 		chrono(start);
+		
+		System.out.println("bench closestCity");
 		start= System.nanoTime();
 		for(int i=0; i != nb; ++i) {
 			closestCity(47., 3.);
 		}
 		chrono(start);
+		
+		System.out.println("bench nearCities");
 		start= System.nanoTime();
 		for(int i=0; i != nb; ++i) {
 			nearCities("Rouen", 10000., "Rennes", 10000.);
@@ -84,123 +95,129 @@ public class ConsoleArrayCRUD {
 	}
 
 	public static void main(String[] args) throws NumberFormatException, IOException{
-	      String fileName = args.length > 0 ? args[0] : "NameLatLong.txt";
-	      Path filePath = Paths.get(fileName);
-	      cities= readCities(filePath);
-	      if(args.length >1){
-		  bench(Long.parseLong(args[1]));
-		  return;
-	      }
-	      String quitOption= "Quitter";
-	      String[] menuOptions={"Choisissez l'opération à effectuer:",
-				    "Rechercher une ville par son nom",
-				    "Ajouter une ville",
-				    "Rechercher la ville la plus proche d'un point",
-				    "Rechercher les villes proches d'une ville donnée",
-				    "Rechercher les villes proches de deux villes",
-				    "Supprimer une ville de la base",
-				    "Modifier une ville de la base",
-				    quitOption};
-	      Scanner input= new Scanner(System.in);
-	      ConsoleMenu menu= new ConsoleMenu(menuOptions, input);
-	      for(int choice= menu.askSelection(); ! menuOptions[choice].equals(quitOption)
-	    		  ; choice= menu.askSelection()){
-		  switch (choice){
-		  case 1:{
-		      String name= input.nextLine();
-		      City city = findByName(name);
-		      if(city != null){
-			  System.out.println(city);
-		      }else{
-			  System.out.println("Pas de ville avec le nom :"+name);
-		      }
-		      break;
-		  }
-		  case 2:{
-		      String name= input.nextLine();
-		      double lat= input.nextDouble();
-		      double lon= input.nextDouble();
-		      createCity(new City(name, lat, lon));
-		      input.nextLine();  //flush line break
-		      break;
-		  }
-		  case 3:{
-		      double lat= input.nextDouble();
-		      double lon= input.nextDouble();
-		      City city= closestCity(lat, lon);
-		      if(city != null){
-			  System.out.println(city);
-		      }else{
-			  System.out.println("Pas de ville trouvée proche de :"+lat+","+lon);
-		      }
-		      input.nextLine();  //flush line break
-		      break;
-		  }
-		  case 4:{
-		      String name= input.nextLine();
-		      double d= input.nextDouble();
-		      City[] res= nearCity(name, d);
-		      printCities(res);
-		      input.nextLine();  //flush line break
-		      break;
-		  }
-		  case 5:{
-		      String name1= input.nextLine();
-		      double d1= input.nextDouble();
-		      input.nextLine();  //flush line break
-		      String name2= input.nextLine();
-		      double d2= input.nextDouble();
-		      City[] res= nearCities(name1, d1, name2, d2);
-		      printCities(res);
-		      input.nextLine();  //flush line break
-		      break;
-		  }
-		  case 6:{
-		      String name= input.nextLine();
-		      if(deleteCity(name)){
-			  System.out.println(name +" effacée.");
-		      }else{
-			  System.out.println(name +" n'a pas été trouvée.");
-		      }
-		      break;
-		  }
-		  case 7:{
-		      String name= input.nextLine();
-		      double lat= input.nextDouble();
-		      double lon= input.nextDouble();
-		      if(!updateCity(name, lat, lon)) {
-		    	  System.out.println("Aucune ville nommée "+name+" n'a pu être trouvée pour modification");
-		      }
-		      input.nextLine();  //flush line break
-		      break;
-		  }
-		  }
-	      }
-	      writeCities(cities, filePath);
-	  }
+		String fileName = args.length > 0 ? args[0] : "NameLatLong.txt";
+		Path filePath = Paths.get(fileName);
+		System.out.println("bench readCities");
+		long start= System.nanoTime();
+		cities= readCities(filePath);
+		chrono(start);
+		if(args.length >1){
+			bench(Long.parseLong(args[1]));
+			return;
+		}
+		String quitOption= "Quitter";
+		String[] menuOptions={"Choisissez l'opération à effectuer:",
+				"Rechercher une ville par son nom",
+				"Ajouter une ville",
+				"Rechercher la ville la plus proche d'un point",
+				"Rechercher les villes proches d'une ville donnée",
+				"Rechercher les villes proches de deux villes",
+				"Supprimer une ville de la base",
+				"Modifier une ville de la base",
+				quitOption};
+		Scanner input= new Scanner(System.in);
+		ConsoleMenu menu= new ConsoleMenu(menuOptions, input);
+		for(int choice= menu.askSelection(); ! menuOptions[choice].equals(quitOption)
+				; choice= menu.askSelection()){
+			switch (choice){
+			case 1:{
+				String name= input.nextLine();
+				City city = findByName(name);
+				if(city != null){
+					System.out.println(city);
+				}else{
+					System.out.println("Pas de ville avec le nom :"+name);
+				}
+				break;
+			}
+			case 2:{
+				String name= input.nextLine();
+				double lat= input.nextDouble();
+				double lon= input.nextDouble();
+				createCity(new City(name, lat, lon));
+				input.nextLine();  //flush line break
+				break;
+			}
+			case 3:{
+				double lat= input.nextDouble();
+				double lon= input.nextDouble();
+				City city= closestCity(lat, lon);
+				if(city != null){
+					System.out.println(city);
+				}else{
+					System.out.println("Pas de ville trouvée proche de :"+lat+","+lon);
+				}
+				input.nextLine();  //flush line break
+				break;
+			}
+			case 4:{
+				String name= input.nextLine();
+				double d= input.nextDouble();
+				City[] res= nearCity(name, d);
+				printCities(res);
+				input.nextLine();  //flush line break
+				break;
+			}
+			case 5:{
+				String name1= input.nextLine();
+				double d1= input.nextDouble();
+				input.nextLine();  //flush line break
+				String name2= input.nextLine();
+				double d2= input.nextDouble();
+				City[] res= nearCities(name1, d1, name2, d2);
+				printCities(res);
+				input.nextLine();  //flush line break
+				break;
+			}
+			case 6:{
+				String name= input.nextLine();
+				if(deleteCity(name)){
+					System.out.println(name +" effacée.");
+				}else{
+					System.out.println(name +" n'a pas été trouvée.");
+				}
+				break;
+			}
+			case 7:{
+				String name= input.nextLine();
+				double lat= input.nextDouble();
+				double lon= input.nextDouble();
+				if(!updateCity(name, lat, lon)) {
+					System.out.println("Aucune ville nommée "+name+" n'a pu être trouvée pour modification");
+				}
+				input.nextLine();  //flush line break
+				break;
+			}
+			}
+		}
+		writeCities(cities, filePath);
+	}
 	private static City[] readCities(Path filePath) throws IOException {
-		City[] res= new City[0];
+		//City[] res= new City[0];
+		ArrayList<City> res= new ArrayList<City>();
 		try(BufferedReader br = Files.newBufferedReader(filePath)) {
 			br.readLine(); // skip header
 			for(String line = br.readLine(); line != null ; line= br.readLine()){
 				City tmp= readCity(line);
 				if(tmp != null) {
-					res= add(res, tmp);
+					//res= add(res, tmp);
+					res.add(tmp);
+					nameToCity.put(tmp.getName(), tmp);
 				}
 			}
-      }
-		return res;
+		}
+		return res.toArray(new City[res.size()]);
 	}
 	private static void writeCities(City[] cities, Path filePath) throws IOException {
 		Path tempDir = Files.createTempDirectory(TEMP_DIR);
-	    Path tempFile = Files.createTempFile(tempDir, TEMP_DIR, ".tmp");
+		Path tempFile = Files.createTempFile(tempDir, TEMP_DIR, ".tmp");
 		try(BufferedWriter writer = Files.newBufferedWriter(tempFile, StandardCharsets.UTF_8
-				     , StandardOpenOption.WRITE)) {
-				for(City city : cities) {
-					writer.write(cityToString(city)+"\n");
-				}
+				, StandardOpenOption.WRITE)) {
+			for(City city : cities) {
+				writer.write(cityToString(city)+"\n");
 			}
-			Files.move(tempFile, filePath,  StandardCopyOption.ATOMIC_MOVE);
+		}
+		Files.move(tempFile, filePath,  StandardCopyOption.ATOMIC_MOVE);
 	}
 	private static boolean updateCity(String name, double lat, double lon) throws IOException {
 		int idx = findIdxByName(name);
@@ -233,7 +250,7 @@ public class ConsoleArrayCRUD {
 		if(data.length == 3){
 			try{
 				res=new City(data[0], numberFormat.parse(data[1]).doubleValue(), numberFormat.parse(data[2]).doubleValue());
-				
+
 			}catch(ParseException e){
 				System.err.println(e);
 			}
